@@ -5,6 +5,8 @@ import com.smart.realm.core.RealmScopeImpl;
 import com.smart.realm.core.WriteScopeImpl;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import io.realm.RealmModel;
 
@@ -13,9 +15,15 @@ import io.realm.RealmModel;
  * Created by QiLiKing on 2020/8/3.
  */
 public final class SmartRealm {
+    private static volatile ExecutorService mExecutorService;
     private static IRealmFactory mRealmFactory;
 
     public static void init(IRealmFactory realmFactory) {
+        init(null, realmFactory);
+    }
+
+    public static void init(ExecutorService executorService, IRealmFactory realmFactory) {
+        mExecutorService = executorService;
         mRealmFactory = realmFactory;
     }
 
@@ -52,6 +60,10 @@ public final class SmartRealm {
         }
     }
 
+    public static void writeAsync(IVoidExecutable<IWriteScope> executable) {
+        obtainExecutor().execute(() -> write(executable));
+    }
+
     /**
      * @return MUST copyFromRealm by yourself if it contains managed object
      */
@@ -65,7 +77,22 @@ public final class SmartRealm {
         write(scope -> scope.insertOrUpdate(object));
     }
 
+    public static void insertOrUpdateAsync(RealmModel object) {
+        obtainExecutor().execute(() -> insertOrUpdate(object));
+    }
+
     public static void insertOrUpdate(List<? extends RealmModel> objects) {
         write(scope -> scope.insertOrUpdate(objects));
+    }
+
+    public static void insertOrUpdateAsync(List<? extends RealmModel> objects) {
+        obtainExecutor().execute(() -> insertOrUpdate(objects));
+    }
+
+    private static synchronized ExecutorService obtainExecutor() {
+        if (mExecutorService == null) {
+            mExecutorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        }
+        return mExecutorService;
     }
 }

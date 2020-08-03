@@ -49,12 +49,16 @@ public class MainActivity extends AppCompatActivity {
 
         SmartRealm.insertOrUpdate(generateTestUser());
 
+        SmartRealm.insertOrUpdateAsync(generateTestUser());
+
         ArrayList<User> users = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             users.add(generateTestUser());
         }
         Log.i(TAG, "to insert:" + users);
         SmartRealm.insertOrUpdate(users);
+
+        SmartRealm.insertOrUpdateAsync(users);
 
         SmartRealm.read(scope -> scope.query(User.class).findAll());
 
@@ -65,6 +69,40 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "user:" + user);
 
         List<User> users1 = SmartRealm.readBack(scope -> {
+            RealmResults<User> us = scope.query(User.class).sort("id").findAll();
+            return scope.copyFromRealm(us);
+        });
+        for (User u : users1) {
+            Log.i(TAG, "users:" + u);
+        }
+
+        SmartRealm.write(scope -> {
+            User u = scope.query(User.class).findFirst();
+            if (u != null) {
+                Log.i(TAG, u.id + " change to name2");
+                u.name = "name2";
+            }
+
+            User unmanaged = scope.copyFromRealm(u);
+            unmanaged.id = "aaaaaaa";
+            User managed = scope.copyToRealmOrUpdate(unmanaged);
+            managed.name = "ddddddd";
+            unmanaged.name = "ccccccc";
+        });
+
+        SmartRealm.writeAsync(scope -> {
+            User u = scope.query(User.class).equalTo("name", "name2").findFirst();
+            if (u != null) {
+                Log.i(TAG, u.id + " change name2 to name3");
+                u.name = "name3";
+            }
+
+            for (int i = 0; i < 5; i++) {
+                scope.insertOrUpdate(generateTestUser());
+            }
+        });
+
+        users1 = SmartRealm.readBack(scope -> {
             RealmResults<User> us = scope.query(User.class).sort("id").findAll();
             return scope.copyFromRealm(us);
         });

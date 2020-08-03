@@ -8,6 +8,7 @@ import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmModel;
+import io.realm.RealmQuery;
 
 /**
  * QQ:1055329812
@@ -19,15 +20,18 @@ public class WriteScopeImpl extends ReadScopeImpl implements IWriteScope {
     }
 
     @Override
+    public <E extends RealmModel> RealmQuery<E> query(Class<E> table) {
+        checkTransaction(table);
+        return super.query(table);
+    }
+
+    @Override
     public void insertOrUpdate(RealmModel object) {
         if (object == null) {
             return;
         }
         Class<? extends RealmModel> clazz = object.getClass();
-        Realm realm = open(clazz);
-        if (!realm.isInTransaction()) {
-            realm.beginTransaction();
-        }
+        Realm realm = checkTransaction(clazz);
         realm.insertOrUpdate(object);   //will cancel transaction in "close" method if error occurs
     }
 
@@ -37,10 +41,7 @@ public class WriteScopeImpl extends ReadScopeImpl implements IWriteScope {
             return null;
         }
         Class<? extends RealmModel> clazz = object.getClass();
-        Realm realm = open(clazz);
-        if (!realm.isInTransaction()) {
-            realm.beginTransaction();
-        }
+        Realm realm = checkTransaction(clazz);
         return realm.copyToRealmOrUpdate(object);   //will cancel transaction in "close" method if error occurs
     }
 
@@ -51,10 +52,7 @@ public class WriteScopeImpl extends ReadScopeImpl implements IWriteScope {
         }
         RealmModel first = objects.get(0);
         Class<? extends RealmModel> clazz = first.getClass();
-        Realm realm = open(clazz);
-        if (!realm.isInTransaction()) {
-            realm.beginTransaction();
-        }
+        Realm realm = checkTransaction(clazz);
         realm.insertOrUpdate(objects);   //will cancel transaction in "close" method if error occurs
     }
 
@@ -65,10 +63,7 @@ public class WriteScopeImpl extends ReadScopeImpl implements IWriteScope {
         }
         RealmModel first = objects.get(0);
         Class<? extends RealmModel> clazz = first.getClass();
-        Realm realm = open(clazz);
-        if (!realm.isInTransaction()) {
-            realm.beginTransaction();
-        }
+        Realm realm = checkTransaction(clazz);
         return realm.copyToRealmOrUpdate(objects);   //will cancel transaction in "close" method if error occurs
     }
 
@@ -85,5 +80,13 @@ public class WriteScopeImpl extends ReadScopeImpl implements IWriteScope {
             }
         }
         super.close();
+    }
+
+    private Realm checkTransaction(Class<? extends RealmModel> table) {
+        Realm realm = open(table);
+        if (!realm.isInTransaction()) {
+            realm.beginTransaction();
+        }
+        return realm;
     }
 }
