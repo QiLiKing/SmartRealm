@@ -1,5 +1,7 @@
 package com.smart.realm.core;
 
+import androidx.annotation.CallSuper;
+
 import com.smart.realm.IRealmFactory;
 import com.smart.realm.IRealmScope;
 
@@ -15,8 +17,8 @@ import io.realm.RealmModel;
  * Created by QiLiKing on 2020/8/3.
  */
 public class RealmScopeImpl implements IRealmScope {
-    protected final HashMap<Integer, Realm> openedRealms = new HashMap<>();
-    protected final IRealmFactory factory;
+    final HashMap<Integer, Realm> openedRealms = new HashMap<>();
+    final IRealmFactory factory;
 
     public RealmScopeImpl(IRealmFactory factory) {
         this.factory = factory;
@@ -34,13 +36,11 @@ public class RealmScopeImpl implements IRealmScope {
         return realm;
     }
 
+    @CallSuper
     @Override
     public void close() {
-        if (openedRealms.size() > 0) {
-            Collection<Realm> realms = openedRealms.values();
-            for (Realm realm : realms) {
-                realm.close();
-            }
+        for (Realm realm : openedRealms.values()) {
+            realm.close();
         }
     }
 }

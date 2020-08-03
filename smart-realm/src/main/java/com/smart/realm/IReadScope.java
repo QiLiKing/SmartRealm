@@ -13,7 +13,7 @@ public interface IReadScope extends IAutoCloseableRealm {
     /**
      * start a query transaction
      */
-    <E extends RealmModel> RealmQuery<E> where(Class<E> table);
+    <E extends RealmModel> RealmQuery<E> query(Class<E> table);
 
     /**
      * use default depth that you configured through {@link SmartRealm#init(IRealmFactory)}

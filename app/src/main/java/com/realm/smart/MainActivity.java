@@ -11,8 +11,6 @@ import com.smart.realm.SmartRealm;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.TimeZone;
-import java.util.UUID;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -44,6 +42,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+//        Realm realm = SmartRealm.realmScope().open(User.class);
+//        realm.beginTransaction();
+//        realm.commitTransaction();
+//        realm.close();
+
         SmartRealm.insertOrUpdate(generateTestUser());
 
         ArrayList<User> users = new ArrayList<>();
@@ -53,16 +56,16 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "to insert:" + users);
         SmartRealm.insertOrUpdate(users);
 
-        SmartRealm.read(scope -> scope.where(User.class).findAll());
+        SmartRealm.read(scope -> scope.query(User.class).findAll());
 
         User user = SmartRealm.readBack(scope -> {
-            User u = scope.where(User.class).findFirst();
+            User u = scope.query(User.class).findFirst();
             return scope.copyFromRealm(u);
         });
         Log.i(TAG, "user:" + user);
 
         List<User> users1 = SmartRealm.readBack(scope -> {
-            RealmResults<User> us = scope.where(User.class).sort("id").findAll();
+            RealmResults<User> us = scope.query(User.class).sort("id").findAll();
             return scope.copyFromRealm(us);
         });
         for (User u : users1) {

@@ -81,7 +81,7 @@ public class WriteScopeImpl extends ReadScopeImpl implements IWriteScope {
                 if (realm.isInTransaction()) {
                     realm.cancelTransaction();
                 }
-                throw t;
+//                throw t;  fixme should throw exception? zhaoshuo
             }
         }
         super.close();

@@ -13,13 +13,14 @@ import io.realm.RealmQuery;
  * QQ:1055329812
  * Created by QiLiKing on 2020/8/3.
  */
+@SuppressWarnings("unchecked")
 public class ReadScopeImpl extends RealmScopeImpl implements IReadScope {
     public ReadScopeImpl(IRealmFactory factory) {
         super(factory);
     }
 
     @Override
-    public <E extends RealmModel> RealmQuery<E> where(Class<E> table) {
+    public <E extends RealmModel> RealmQuery<E> query(Class<E> table) {
         return open(table).where(table);
     }
 
