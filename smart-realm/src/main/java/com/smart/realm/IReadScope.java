@@ -1,5 +1,6 @@
 package com.smart.realm;
 
+import java.util.Iterator;
 import java.util.List;
 
 import io.realm.RealmModel;
@@ -25,7 +26,7 @@ public interface IReadScope extends IAutoCloseableRealm {
     /**
      * use default depth that you configured through {@link SmartRealm#init(IRealmFactory)}
      */
-    <E extends RealmModel> List<E> copyFromRealm(List<E> realmObjects);
+    <E extends RealmModel> List<E> copyFromRealm(Iterable<E> realmObjects);
 
-    <E extends RealmModel> List<E> copyFromRealm(List<E> realmObjects, int maxDepth);
+    <E extends RealmModel> List<E> copyFromRealm(Iterable<E> realmObjects, int maxDepth);
 }

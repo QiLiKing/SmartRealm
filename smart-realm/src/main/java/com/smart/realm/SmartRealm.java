@@ -8,7 +8,9 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import io.realm.RealmCollection;
 import io.realm.RealmModel;
+import io.realm.RealmObject;
 
 /**
  * QQ:1055329812
@@ -50,13 +52,14 @@ public final class SmartRealm {
      */
     public static <R> R readBack(IValueExecutable<IReadScope, R> executable) {
         try (IReadScope readScope = readScope()) {
-            return executable.execute(readScope);
+            R value = executable.execute(readScope);
+            return checkValue(readScope, value);
         }
     }
 
     public static void write(IVoidExecutable<IWriteScope> executable) {
-        try (IWriteScope readWriteScope = writeScope()) {
-            executable.execute(readWriteScope);
+        try (IWriteScope writeScope = writeScope()) {
+            executable.execute(writeScope);
         }
     }
 
@@ -68,8 +71,9 @@ public final class SmartRealm {
      * @return MUST copyFromRealm by yourself if it contains managed object
      */
     public static <R> R writeBack(IValueExecutable<IWriteScope, R> executable) {
-        try (IWriteScope readWriteScope = writeScope()) {
-            return executable.execute(readWriteScope);
+        try (IWriteScope writeScope = writeScope()) {
+            R value = executable.execute(writeScope);
+            return checkValue(writeScope, value);
         }
     }
 
@@ -87,6 +91,22 @@ public final class SmartRealm {
 
     public static void insertOrUpdateAsync(List<? extends RealmModel> objects) {
         obtainExecutor().execute(() -> insertOrUpdate(objects));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <R> R checkValue(IReadScope readScope, R value) {
+        if (value instanceof RealmModel) {
+            RealmModel object = (RealmModel) value;
+            if (RealmObject.isManaged(object)) {
+                return (R) readScope.copyFromRealm(object);
+            }
+        } else if (value instanceof RealmCollection) {
+            RealmCollection<? extends RealmModel> objects = (RealmCollection<? extends RealmModel>) value;
+            if (objects.isManaged()) {
+                return (R) readScope.copyFromRealm(objects);
+            }
+        }
+        return value;
     }
 
     private static synchronized ExecutorService obtainExecutor() {

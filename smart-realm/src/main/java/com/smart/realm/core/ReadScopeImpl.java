@@ -1,9 +1,12 @@
 package com.smart.realm.core;
 
+import androidx.annotation.Nullable;
+
 import com.smart.realm.IReadScope;
 import com.smart.realm.IRealmFactory;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import io.realm.RealmModel;
@@ -43,22 +46,43 @@ public class ReadScopeImpl extends RealmScopeImpl implements IReadScope {
     }
 
     @Override
-    public <E extends RealmModel> List<E> copyFromRealm(List<E> realmObjects) {
-        if (realmObjects.isEmpty()) {
+    public <E extends RealmModel> List<E> copyFromRealm(Iterable<E> realmObjects) {
+        Class<E> clazz = findClass(realmObjects);
+        if (clazz == null) {
             return new ArrayList<>(0);
+        } else {
+            return open(clazz).copyFromRealm(realmObjects, factory.getCopyDeep(clazz));
         }
-        E e = realmObjects.get(0);
-        Class<E> clazz = (Class<E>) e.getClass();
-        return open(clazz).copyFromRealm(realmObjects, factory.getCopyDeep(clazz));
     }
 
     @Override
-    public <E extends RealmModel> List<E> copyFromRealm(List<E> realmObjects, int maxDepth) {
-        if (realmObjects.isEmpty()) {
+    public <E extends RealmModel> List<E> copyFromRealm(Iterable<E> realmObjects, int maxDepth) {
+        Class<E> clazz = findClass(realmObjects);
+        if (clazz == null) {
             return new ArrayList<>(0);
+        } else {
+            return open(clazz).copyFromRealm(realmObjects, maxDepth);
         }
-        E e = realmObjects.get(0);
-        Class<E> clazz = (Class<E>) e.getClass();
-        return open(clazz).copyFromRealm(realmObjects, maxDepth);
+    }
+
+    /**
+     * @return null - objects is empty
+     */
+    @Nullable
+    private static <E extends RealmModel> Class<E> findClass(Iterable<E> objects) {
+        if (objects instanceof List) {
+            List<E> list = (List<E>) objects;
+            if (list.size() > 0) {
+                E first = list.get(0);
+                return (Class<E>) first.getClass();
+            }
+        } else {
+            Iterator<E> iterator = objects.iterator();
+            if (iterator.hasNext()) {
+                E first = iterator.next();
+                return (Class<E>) first.getClass();
+            }
+        }
+        return null;
     }
 }
