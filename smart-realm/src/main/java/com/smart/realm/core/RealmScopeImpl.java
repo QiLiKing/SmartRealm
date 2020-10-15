@@ -5,7 +5,6 @@ import androidx.annotation.CallSuper;
 import com.smart.realm.IRealmFactory;
 import com.smart.realm.IRealmScope;
 
-import java.util.Collection;
 import java.util.HashMap;
 
 import io.realm.Realm;
